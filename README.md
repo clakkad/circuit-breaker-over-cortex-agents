@@ -64,10 +64,10 @@ sequenceDiagram
 | Component | Role |
 |-----------|------|
 | **CB_INTERCEPT** | Python SP — normalizes question, tries exact then hybrid match, returns HIT or MISS |
-| **cb_question_history** | Table (PK: normalized question) — stores cached SQL, hit counts, recency |
-| **Cortex Search Service** | CB_QUESTION_SEARCH — semantic similarity matching with confidence gating |
+| **CB_QUESTION_HISTORY** | Table (PK: normalized question) — stores cached SQL, hit counts, recency |
+| **CB_QUESTION_SEARCH** | Cortex Search Service — semantic similarity matching with confidence gating |
 | **CORTEX.COMPLETE** | Formats raw SQL results into conversational answers on the HIT path |
-| **Cortex Agent** | Handles MISSes — full SQL generation with multi-step reasoning |
+| **CB_TPCH_AGENT** | Cortex Agent — handles MISSes with full SQL generation and multi-step reasoning |
 | **CB_HARVEST_TASK** | Scheduled task — MERGEs agent-generated SQL from observability logs into the cache |
 
 ## Reference Implementation
@@ -125,6 +125,21 @@ CONNECTION=my_connection DEPLOY_ROLE=MY_ROLE bash dcm/deploy.sh
 | `DEPLOY_ROLE` | `<Configured Snowflake Role>` | Role used for deployment |
 | `TARGET` | `DEV` | DCM target from manifest |
 
+### Configuration Parameters
+
+All tuning is done at call time via procedure parameters — there is no external config file.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `P_USER_QUESTION` | VARCHAR | The natural language question from the end user |
+| `P_HYBRID_SEARCH_ENABLED` | BOOLEAN | When `TRUE`, falls back to Cortex Search semantic matching if no exact match is found. Set to `FALSE` for exact-only matching (lower cost, stricter) |
+| `P_CONFIDENCE_THRESHOLD` | FLOAT | Minimum cosine similarity score (0.0–1.0) required for a hybrid search result to qualify as a HIT. Higher values reduce false positives but may miss paraphrased questions. Recommended: `0.90`–`0.98` |
+| `P_RECENCY_WINDOW_DAYS` | NUMBER | Only match against questions asked within this many days. Older cached entries are ignored even if not expired. Controls how "fresh" a cached answer must be |
+| `P_EXPIRY_THRESHOLD_DAYS` | NUMBER | Questions not asked within this many days are marked expired and excluded from matching entirely. Acts as a TTL for the cache |
+| `P_RESPONSE_MODEL` | VARCHAR | The Cortex LLM model used to format SQL results into natural language on the HIT path (e.g., `'mistral-large2'`, `'llama3.1-70b'`) |
+| `P_AGENT_NAME` | VARCHAR | Fully-qualified name of the Cortex Agent to route MISSes to (e.g., `'CIRCUIT_BREAKER.MAIN.CB_TPCH_AGENT'`). The interceptor builds the REST endpoint from this |
+| `P_PREVIEW_ROWS` | NUMBER | Maximum number of rows to return from cached SQL execution. Limits result size for the LLM formatter and the `result_preview` field |
+
 ### Usage
 
 Once deployed, call the interceptor from your application:
@@ -180,3 +195,13 @@ To use the Circuit Breaker with your own agent and data:
 2. **Replace the Agent** — Update the agent spec in `post_deploy.sql` with your own tools and instructions
 3. **Update the `agent_name` parameter** — Pass your agent's fully-qualified name when calling `CB_INTERCEPT`
 4. **Adjust thresholds** — Tune `confidence_threshold` (semantic matching strictness) and `recency_window_days` (cache freshness) for your use case
+
+### Further enhancements to consider
+
+- Add bypass for questions against unstructured data (where the relevant Cortex Search is remembered and hit directly; this will only work for single-search sourced queries).
+
+## Alternate Solution Options
+
+### Circuit Breaker as a long running service
+
+TBD
