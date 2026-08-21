@@ -1,0 +1,26 @@
+manifest_version: 2
+type: DCM_PROJECT
+default_target: 'DEV'
+
+targets:
+  DEV:
+    account_identifier: UIB27272
+    project_name: 'CIRCUIT_BREAKER.DCM_HOME.CB_DCM'
+    project_owner: COCO_CLI_SANDBOX_ROLE
+    templating_config: 'DEV'
+
+templating:
+  defaults:
+    db_name: 'CIRCUIT_BREAKER'
+    schema_name: 'MAIN'
+    wh_name: 'CB_WH'
+    wh_size: 'XSMALL'
+    stage_name: 'CB_PYTHON_MODULES'
+    table_name: 'CB_QUESTION_HISTORY'
+    proc_intercept: 'CB_INTERCEPT'
+    proc_harvest: 'CB_HARVEST_AGENT_SQL'
+    task_harvest: 'CB_HARVEST_TASK'
+    task_wh: 'CB_WH'
+  configurations:
+    DEV:
+      wh_size: 'XSMALL'
