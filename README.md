@@ -2,6 +2,20 @@
 
 An intercept layer for agentic data applications that reduces cost and latency by caching frequently asked questions.
 
+## Table of Contents
+
+- [What is the Circuit Breaker?](#what-is-the-circuit-breaker)
+- [Architecture](#architecture)
+  - [Key Components](#key-components)
+- [Reference Implementation](#reference-implementation)
+  - [Prerequisites](#prerequisites)
+  - [Project Structure](#project-structure)
+  - [Deploy](#deploy)
+  - [Configuration Parameters](#configuration-parameters)
+  - [Usage](#usage)
+  - [Resume the Harvester Task](#resume-the-harvester-task)
+  - [Adapting to Your Own Data](#adapting-to-your-own-data)
+
 ## What is the Circuit Breaker?
 
 The Circuit Breaker (CB) is an architectural pattern that sits in front of a Cortex Agent to intercept incoming natural language questions. If a question (exact or semantically similar) has been asked before, the cached SQL is re-executed directly — bypassing the agent entirely.
