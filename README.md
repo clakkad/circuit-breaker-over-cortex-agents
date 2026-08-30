@@ -20,7 +20,7 @@ An intercept layer for agentic data applications that reduces cost and latency b
 
 The Circuit Breaker (CB) is an architectural pattern that sits in front of a Cortex Agent to intercept incoming natural language questions. If a question (exact or semantically similar) has been asked before, the cached SQL is re-executed directly — bypassing the agent entirely.
 
-This is designed for **insights-only agentic applications over structured data** — applications where a Cortex Agent generates SQL queries to answer business questions.
+This is designed for **insights-only, agentic applications on structured data** — applications in which a Cortex Agent generates SQL queries to answer business questions.
 
 ### Why use it?
 
@@ -209,13 +209,3 @@ To use the Circuit Breaker with your own agent and data:
 2. **Replace the Agent** — Update the agent spec in `post_deploy.sql` with your own tools and instructions
 3. **Update the `agent_name` parameter** — Pass your agent's fully-qualified name when calling `CB_INTERCEPT`
 4. **Adjust thresholds** — Tune `confidence_threshold` (semantic matching strictness) and `recency_window_days` (cache freshness) for your use case
-
-### Further enhancements to consider
-
-- Add bypass for questions against unstructured data (where the relevant Cortex Search is remembered and hit directly; this will only work for single-search sourced queries).
-
-## Alternate Solution Options
-
-### Circuit Breaker as a long running service
-
-TBD
